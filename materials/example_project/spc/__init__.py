@@ -1,3 +1,0 @@
-"""
-SPC - Scientific Programming Centre
-"""

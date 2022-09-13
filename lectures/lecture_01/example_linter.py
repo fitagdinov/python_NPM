@@ -1,1 +1,0 @@
-../../materials/example_linter.py
