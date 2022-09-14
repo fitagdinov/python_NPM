@@ -1,3 +1,4 @@
-# Advanced python homework
-
-Before perform of new homework assignment merge top commit of main branch in your repository.
+### чтобы установить все пакеты введите:
+    pip install -r requirements.txt
+### как создать документацию 
+    python setup.py build_sphinx
