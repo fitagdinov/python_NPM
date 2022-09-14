@@ -127,4 +127,4 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-env_npm_py/
+stem_framework/stemsteenv_npm_py/
