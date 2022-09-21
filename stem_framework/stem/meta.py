@@ -74,33 +74,7 @@ class MetaVerification:
                         required_types = required_types
                     )
                 )
-            else:
-                presented_value = get_meta_attr(meta, required_key)
-                presented_type = type(presented_value)
-
-                if (isinstance(required_types, type) or (
-                    isinstance(required_types, tuple) and isinstance(required_types[0], type)
-                )):
-                    # Выход из рекурсии
-                    if not issubclass(presented_type, required_types):
-                        errors.append(
-                            MetaFieldError(
-                                required_key = required_key,
-                                required_types = required_types,
-                                presented_value = presented_value,
-                                presented_type = presented_type
-                            )
-                        )
-                else:
-                    # Вход в рекурсию
-                    errors_next_level = MetaVerification.verify(
-                        get_meta_attr(meta, required_key),
-                        required_types
-                    ).error
-
-                    if errors_next_level != ():
-                        errors.append(errors_next_level)
-
+            
         return MetaVerification(*errors)
 
 
