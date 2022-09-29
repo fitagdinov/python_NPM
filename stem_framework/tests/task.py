@@ -3,7 +3,6 @@ from typing import TypeVar, Union, Tuple, Callable, Optional, Generic, Any, Iter
 from abc import ABC, abstractmethod
 from .core import Named
 from .meta import Specification, Meta
-from functools import reduce
 
 T = TypeVar("T")
 
@@ -66,67 +65,35 @@ class FunctionDataTask(DataTask[T]):
 
 
 def data(func: Callable[[Meta], T], specification: Optional[Specification] = None, **settings) -> FunctionDataTask[T]:
-    def wrap(name):
-        return FunctionDataTask(name, func, specification, **settings)
-
-    if func is None:
-        return wrap
-    else:
-        return FunctionDataTask(func.__name__, func, specification, **settings)
+    return FunctionDataTask(func.__name__, func, specification, **settings)
 
 
 
 def task(func: Callable[[Meta, ...], T], specification: Optional[Specification] = None, **settings) -> FunctionTask[T]:
-    def wrap(name, dependencies):
-        return FunctionTask(name, func, dependencies, specification, **settings)
     args=[]
     for arg in func.__code__.co_varnames:
         if arg != 'meta':
             args.append(arg)
     args=tuple(args)
-    if func is None:
-        wrap
-    else:
-        return FunctionTask(func.__name__, func, args, specification, **settings)
+    return FunctionTask(func.__name__, func, args, specification, **settings)
 
 
 class MapTask(Task[Iterator[T]]):
     def __init__(self, func: Callable, dependence : Union[str, "Task"]):
         self.func=func
         if isinstance(dependence, str):
-            self.dependence = dependence
+            self.dependence_name = dependence
         else:
-            self.dependence = dependence.name
-        self.name = 'map_' + self.dependence
-    def transform(self, meta: Meta, /, **kwargs: Any):
-        return map(self.func, kwargs[self.dependence].items())
+            self.dependence_name = dependence.name
+        self.name = 'map_' + self.dependence_name
 
 
 class FilterTask(Task[Iterator[T]]):
     def __init__(self, key: Callable, dependence: Union[str, "Task"]):
-        self.key = key
-        
-        if isinstance(dependence, str):
-            self.dependence = dependence
-        else:
-            self.dependence = dependence.name
-
-        self._name = 'filter_' + self.dependence
-
-    def transform(self, meta: Meta, /, **kwargs: Any):
-        return filter(self.key, kwargs[self.dependence].items())
+        ...  # TODO()
 
 
 class ReduceTask(Task[Iterator[T]]):
     def __init__(self, func: Callable, dependence: Union[str, "Task"]):
-        self.func = func
-        
-        if isinstance(dependence, str):
-            self.dependence = dependence
-        else:
-            self.dependence = dependence.name
+        ...  # TODO()
 
-        self._name = 'reduce_' + self.dependence
-
-    def transform(self, meta: Meta, /, **kwargs: Any):
-        return reduce(self.func, kwargs[self.dependence].items())

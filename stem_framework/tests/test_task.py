@@ -1,7 +1,6 @@
 from functools import reduce
 from unittest import TestCase
-
-from stem.task import Task, MapTask, FilterTask, ReduceTask
+from task import Task, MapTask, FilterTask, ReduceTask
 from tests.example_task import IntRange, int_range, int_scale, data_scale
 
 
