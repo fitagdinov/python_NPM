@@ -1,11 +1,11 @@
 from enum import Enum, auto
-from typing import Optional, Callable, TypeVar, Generic
+from typing import Optional, Callable, Type, TypeVar, Generic
 from functools import cached_property
 from dataclasses import dataclass, field
 
 from .meta import Meta, MetaVerification, Specification
 from .task import Task
-from .workspace import Workspace
+from .workspace import IWorkspace
 from .task_runner import TaskRunner, SimpleRunner
 from .task_tree import TaskNode, TaskTree
 
@@ -62,5 +62,30 @@ class TaskMaster:
         self.task_runner = task_runner
         self.task_tree = task_tree
 
-    def execute(self, meta: Meta, task: Task[T], workspace: Optional[Workspace] = None) -> TaskResult[T]:
-        pass  # TODO()
+    def execute(self, meta: Meta, task: Task[T], workspace: Optional[Type[IWorkspace]] = None) -> TaskResult[T]:
+
+        if self.task_tree is not None:
+            task_node = self.task_tree.resolve_node(task, workspace)
+        else:
+            task_node = TaskNode(task, workspace)
+
+        if task.specification is not None:
+            verif = MetaVerification.verify(meta, task.specification)
+            if not verif.checked_success:
+                return TaskResult(
+                    TaskStatus.META_ERROR,
+                    task_node,
+                    TaskMetaError(task_node, verif)
+                )
+
+        if task_node.has_dependence_errors:
+            return TaskResult(
+                TaskStatus.DEPENDENCIES_ERROR,
+                task_node
+            )
+
+        return TaskResult(
+            TaskStatus.CONTAINS_DATA,
+            task_node,
+            lazy_data = lambda: self.task_runner.run(meta, task_node)
+        )
