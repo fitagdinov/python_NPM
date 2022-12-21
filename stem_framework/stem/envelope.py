@@ -1,15 +1,16 @@
-import array
+from math import ceil
 import mmap
+from tempfile import TemporaryFile
 from asyncio import StreamReader, StreamWriter
-from io import RawIOBase, BufferedReader, BytesIO
+from io import BufferedRWPair, RawIOBase, BufferedReader, BytesIO, UnsupportedOperation
 from json import JSONEncoder
-from typing import Optional, Union, Dict
+from typing import IO, Union, Dict, BinaryIO
 from dataclasses import is_dataclass, asdict
 import json
 from .meta import Meta
 
 
-Binary = Union[bytes, bytearray, memoryview, array.array, mmap.mmap]
+Binary = Union[bytes, bytearray, memoryview, mmap.mmap]
 
 
 class MetaEncoder(JSONEncoder):
