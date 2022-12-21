@@ -73,9 +73,33 @@ class Envelope:
         output.write(self.data)
 
         output.write(b'~#')
+
     @staticmethod
     async def async_read(reader: StreamReader) -> "Envelope":
-        pass  # TODO(Assignment 11)
+        assert b'#~' == await reader.read(2), "Envelope header doesn't start with b'#~'"
+        assert b'DF02' == await reader.read(4), "Envelope type (version) is not DF02"
+        await reader.read(2)  # MetaType: XML or YAML
+
+        metaLength = int.from_bytes(await reader.read(4))
+        dataLength = int.from_bytes(await reader.read(4))
+
+        assert b'~#\r\n' == await reader.read(4), r"Envelope header doesn't end with b'~#\r\n'"
+
+        meta = json.loads(await reader.read(metaLength))
+        tmp_file = None
+
+        if dataLength < Envelope._MAX_SIZE:
+            data = await reader.read(dataLength)
+        else:
+            tmp_file = TemporaryFile('rwb')
+            # write input to tmp in chuncks:
+            for _ in range(ceil(dataLength / Envelope._MAX_SIZE)):
+                tmp_file.write(await reader.read(Envelope._MAX_SIZE))
+            tmp_file.flush()
+
+            data = mmap.mmap(tmp_file.fileno(), dataLength)
+
+        return Envelope(meta, data, tmp_file)
 
     async def async_write_to(self, writer: StreamWriter):
-        pass  # TODO(Assignment 11)
+        self.write_to(writer)
